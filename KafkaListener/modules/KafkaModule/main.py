@@ -32,17 +32,18 @@ async def main():
         # Define behavior for receiving an input message on input1
         # Because this is a filter module, we forward this message to the "output1" queue.
         
-        consumer = AIOKafkaConsumer(
+
+        async def kafka_listener():
+            global KAFKA_BOOTSTRAP_SERVER
+            global KAFKA_TOPIC
+
+            consumer = AIOKafkaConsumer(
                 KAFKA_TOPIC,
                 bootstrap_servers=KAFKA_BOOTSTRAP_SERVER,
                 group_id="OSDU_Group"
             )
         
-        await consumer.start()
-
-        async def kafka_listener(consumer):
-            global KAFKA_BOOTSTRAP_SERVER
-            global KAFKA_TOPIC
+            await consumer.start()
 
             print("Connecting to new server: ", KAFKA_BOOTSTRAP_SERVER)
             
@@ -51,6 +52,8 @@ async def main():
                     print("consuned: ", msg.topic, msg.value, msg.timestamp)
             except Exception as e:
                 print ("Connection error %s " % e )
+            finally:
+                await consumer.stop()
 
         # twin_patch_listener is invoked when the module twin's desired properties are updated.
         async def twin_patch_listener(module_client):
@@ -90,7 +93,7 @@ async def main():
                     time.sleep(10)
         
         # Schedule task for C2D Listener
-        listeners = asyncio.gather(kafka_listener(consumer), twin_patch_listener(module_client))
+        listeners = asyncio.gather(kafka_listener(), twin_patch_listener(module_client))
         print ( "Listening kafka for messages. ")
 
         # Run the stdin listener in the event loop
@@ -109,7 +112,7 @@ async def main():
 
         # Finally, disconnect
         await module_client.disconnect()
-        await consumer.stop()
+
 
 
 if __name__ == "__main__":

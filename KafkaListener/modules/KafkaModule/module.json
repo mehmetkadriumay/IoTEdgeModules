@@ -4,7 +4,7 @@
   "image": {
     "repository": "kafkamodule",
     "tag": {
-      "version": "0.0.27",
+      "version": "0.0.30",
       "platforms": {
         "amd64": "./Dockerfile.amd64",
         "amd64.debug": "./Dockerfile.amd64.debug",
