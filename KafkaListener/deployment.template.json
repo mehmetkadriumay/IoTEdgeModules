@@ -66,16 +66,6 @@
               "image": "iotedgemoduleacr.azurecr.io/${MODULES.KafkaModule}",
               "createOptions": {}
             }
-          },
-          "SimulatedTemperatureSensor": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0",
-              "createOptions": {}
-            }
           }
         }
       }
@@ -84,8 +74,7 @@
       "properties.desired": {
         "schemaVersion": "1.1",
         "routes": {
-          "KafkaModuleToIoTHub": "FROM /messages/modules/KafkaModule/outputs/* INTO $upstream",
-          "sensorToKafkaModule": "FROM /messages/modules/SimulatedTemperatureSensor/outputs/temperatureOutput INTO BrokeredEndpoint(\"/modules/KafkaModule/inputs/input1\")"
+          "KafkaModuleToIoTHub": "FROM /messages/modules/KafkaModule/outputs/* INTO $upstream"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
@@ -94,7 +83,6 @@
     },
     "KafkaModule":{
       "properties.desired":{
-        "TemperatureThreshold":25,
         "KAFKA_BOOTSTRAP_SERVER": "kafka:9092",
         "KAFKA_TOPIC": "OSDU_Topic"
       }

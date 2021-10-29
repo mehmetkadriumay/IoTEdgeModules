@@ -14,7 +14,6 @@ from aiokafka import AIOKafkaConsumer
 
 
 # global counters
-TEMPERATURE_THRESHOLD = 25
 TWIN_CALLBACKS = 0
 RECEIVED_MESSAGES = 0
 KAFKA_BOOTSTRAP_SERVER = "kafka:9092"
@@ -47,44 +46,15 @@ async def main():
 
             print("Connecting to new server: ", KAFKA_BOOTSTRAP_SERVER)
             
-
             try:
                 async for msg in consumer:
                     print("consuned: ", msg.topic, msg.value, msg.timestamp)
             except Exception as e:
                 print ("Connection error %s " % e )
 
-        '''
-        async def input1_listener(module_client):
-            global RECEIVED_MESSAGES
-            global TEMPERATURE_THRESHOLD
-
-            while True:
-                try:
-                    input_message = await module_client.receive_message_on_input("input1")  # blocking call
-                    #input_message = await module_client.on_message_received("input1")  # blocking call
-                    print("Input Message is")
-                    message = input_message.data
-                    size = len(message)
-                    message_text = message.decode('utf-8')
-                    print ( "    Data: <<<%s>>> & Size=%d" % (message_text, size) )
-                    custom_properties = input_message.custom_properties
-                    print ( "    Properties: %s" % custom_properties )
-                    RECEIVED_MESSAGES += 1
-                    print ( "    Total messages received: %d" % RECEIVED_MESSAGES )
-                    data = json.loads(message_text)
-                    if "machine" in data and "temperature" in data["machine"] and data["machine"]["temperature"] > TEMPERATURE_THRESHOLD:
-                        custom_properties["MessageType"] = "Alert"
-                        print ( "Machine temperature %s exceeds threshold %s" % (data["machine"]["temperature"], TEMPERATURE_THRESHOLD))
-                        await module_client.send_message_to_output(input_message, "output1")
-                except Exception as ex:
-                    print ( "Unexpected error in input1_listener: %s" % ex )
-
-        '''
         # twin_patch_listener is invoked when the module twin's desired properties are updated.
         async def twin_patch_listener(module_client):
             global TWIN_CALLBACKS
-            global TEMPERATURE_THRESHOLD
             global KAFKA_BOOTSTRAP_SERVER
             global KAFKA_TOPIC
 
@@ -92,9 +62,6 @@ async def main():
                 try:
                     data = await module_client.receive_twin_desired_properties_patch()  # blocking call
                     print( "The data in the desired properties patch was: %s" % data)
-                    if "TemperatureThreshold" in data:
-                        TEMPERATURE_THRESHOLD = data["TemperatureThreshold"]
-                        TWIN_CALLBACKS += 1
                     
                     if "KAFKA_BOOTSTRAP_SERVER" in data:
                         KAFKA_BOOTSTRAP_SERVER = data["KAFKA_BOOTSTRAP_SERVER"]
@@ -124,8 +91,7 @@ async def main():
         
         # Schedule task for C2D Listener
         listeners = asyncio.gather(kafka_listener(consumer), twin_patch_listener(module_client))
-        #listeners = asyncio.gather(input1_listener(module_client), twin_patch_listener(module_client))
-        print ( "The sample is now waiting for messages. ")
+        print ( "Listening kafka for messages. ")
 
         # Run the stdin listener in the event loop
         loop = asyncio.get_event_loop()
